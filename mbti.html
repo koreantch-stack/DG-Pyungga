@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MBTI 성격 유형 검사</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#ffffff;--bg2:#f7f6f3;--bg3:#f0efe9;
+  --text:#1a1a1a;--text2:#555;--text3:#999;
+  --border:rgba(0,0,0,0.1);--border2:rgba(0,0,0,0.2);
+  --radius:10px;--radius-lg:14px;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#1a1a1a;--bg2:#222;--bg3:#2a2a2a;
+    --text:#f0efe9;--text2:#aaa;--text3:#666;
+    --border:rgba(255,255,255,0.1);--border2:rgba(255,255,255,0.2);
+  }
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Malgun Gothic','Apple SD Gothic Neo',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:2rem 1rem}
+.app{max-width:620px;margin:0 auto}
+.screen{display:none}
+.screen.active{display:block}
+
+.header{text-align:center;margin-bottom:2.5rem}
+.logo{font-size:11px;letter-spacing:0.15em;color:var(--text3);text-transform:uppercase;margin-bottom:0.75rem}
+.title{font-size:28px;font-weight:600;color:var(--text);line-height:1.2;margin-bottom:0.5rem}
+.subtitle{font-size:14px;color:var(--text2);line-height:1.7}
+
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;background:var(--bg2);border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:1.5rem}
+.info-item{text-align:center}
+.info-num{font-size:26px;font-weight:600;color:var(--text)}
+.info-label{font-size:12px;color:var(--text3);margin-top:3px}
+
+.start-btn{width:100%;background:var(--text);color:var(--bg);border:none;border-radius:var(--radius);padding:1rem;font-size:15px;cursor:pointer;font-family:inherit;font-weight:500;transition:opacity 0.15s}
+.start-btn:hover{opacity:0.85}
+
+.progress-label{font-size:12px;color:var(--text3);text-align:right;margin-bottom:6px}
+.progress-bar{background:var(--border);border-radius:99px;height:3px;margin-bottom:2rem;overflow:hidden}
+.progress-fill{height:100%;background:var(--text);border-radius:99px;transition:width 0.4s ease}
+
+.question-card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:2rem;margin-bottom:1.25rem}
+.q-cat{font-size:11px;letter-spacing:0.12em;color:var(--text3);text-transform:uppercase;margin-bottom:1rem}
+.q-text{font-size:17px;color:var(--text);line-height:1.6}
+
+.options{display:flex;flex-direction:column;gap:10px}
+.opt-btn{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem;text-align:left;cursor:pointer;font-size:15px;color:var(--text);line-height:1.5;transition:all 0.15s;font-family:inherit}
+.opt-btn:hover{border-color:var(--border2);background:var(--bg2)}
+.opt-btn.selected{border-color:var(--text);background:var(--bg2);font-weight:500}
+
+.nav{display:flex;justify-content:space-between;align-items:center;margin-top:1.5rem}
+.btn-prev{background:none;border:0.5px solid var(--border);border-radius:var(--radius);padding:0.65rem 1.25rem;font-size:13px;color:var(--text2);cursor:pointer;font-family:inherit}
+.btn-prev:hover{border-color:var(--border2)}
+.btn-next{background:var(--text);color:var(--bg);border:none;border-radius:var(--radius);padding:0.65rem 1.5rem;font-size:13px;cursor:pointer;font-family:inherit;font-weight:500;transition:opacity 0.15s}
+.btn-next:disabled{opacity:0.25;cursor:default}
+
+.result-badge{text-align:center;margin-bottom:2rem}
+.type-emoji{font-size:44px;margin-bottom:0.5rem}
+.type-code{font-size:52px;font-weight:700;letter-spacing:0.06em;color:var(--text)}
+.type-name{font-size:16px;color:var(--text2);margin-top:4px}
+
+.section-title{font-size:11px;letter-spacing:0.12em;color:var(--text3);text-transform:uppercase;margin-bottom:0.9rem}
+.trait-row{margin-bottom:1.1rem}
+.trait-labels{display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:5px}
+.trait-bar-bg{background:var(--bg3);border-radius:99px;height:6px;overflow:hidden}
+.trait-bar-fill{height:100%;border-radius:99px;background:var(--text);transition:width 1s ease}
+.trait-pct{font-size:11px;color:var(--text3);text-align:center;margin-top:4px}
+
+.desc-card{background:var(--bg2);border-radius:var(--radius);padding:1.25rem;margin-bottom:1.75rem}
+.desc-card p{font-size:14px;color:var(--text2);line-height:1.75}
+
+.traits-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.75rem}
+.trait-chip{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius);padding:0.85rem 1rem}
+.trait-chip-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px}
+.trait-chip-desc{font-size:12px;color:var(--text2);line-height:1.4}
+
+.compat-item{display:flex;align-items:center;gap:14px;padding:1rem;background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius);margin-bottom:9px}
+.compat-type-code{font-size:17px;font-weight:700;color:var(--text);min-width:52px}
+.compat-info{flex:1}
+.compat-name{font-size:13px;color:var(--text);margin-bottom:3px;font-weight:500}
+.compat-desc{font-size:12px;color:var(--text3);line-height:1.4}
+.compat-bar-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0}
+.compat-bar{width:56px;height:4px;background:var(--bg3);border-radius:99px;overflow:hidden}
+.compat-fill{height:100%;background:var(--text);border-radius:99px}
+.compat-pct-label{font-size:10px;color:var(--text3)}
+
+.restart-btn{width:100%;background:none;border:0.5px solid var(--border);border-radius:var(--radius);padding:0.85rem;font-size:14px;color:var(--text2);cursor:pointer;font-family:inherit;margin-top:0.75rem;transition:all 0.15s}
+.restart-btn:hover{border-color:var(--border2);color:var(--text)}
+
+.divider{border:none;border-top:0.5px solid var(--border);margin:1.5rem 0}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div id="screen-start" class="screen active">
+    <div class="header">
+      <div class="logo">personality test</div>
+      <h1 class="title">나는 어떤 사람인가</h1>
+      <p class="subtitle">60개의 질문에 솔직하게 답하세요.<br>결과는 당신이 생각하는 것과 다를 수 있습니다.</p>
+    </div>
+    <div class="info-grid">
+      <div class="info-item"><div class="info-num">60</div><div class="info-label">문항</div></div>
+      <div class="info-item"><div class="info-num">5분</div><div class="info-label">소요</div></div>
+    </div>
+    <button class="start-btn" onclick="startTest()">검사 시작</button>
+  </div>
+
+  <div id="screen-test" class="screen">
+    <div class="progress-label" id="prog-label">1 / 60</div>
+    <div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+    <div class="question-card">
+      <div class="q-cat" id="q-cat"></div>
+      <div class="q-text" id="q-text"></div>
+    </div>
+    <div class="options" id="options"></div>
+    <div class="nav">
+      <button class="btn-prev" id="btn-prev" onclick="prevQ()">← 이전</button>
+      <button class="btn-next" id="btn-next" onclick="nextQ()" disabled>다음 →</button>
+    </div>
+  </div>
+
+  <div id="screen-result" class="screen">
+    <div class="result-badge">
+      <div class="type-emoji" id="res-emoji"></div>
+      <div class="type-code" id="res-code"></div>
+      <div class="type-name" id="res-name"></div>
+    </div>
+    <div class="section-title">지표 분석</div>
+    <div id="trait-bars" style="margin-bottom:1.75rem"></div>
+    <hr class="divider">
+    <div class="section-title">유형 설명</div>
+    <div class="desc-card" id="res-desc"></div>
+    <div class="section-title">주요 특성</div>
+    <div class="traits-grid" id="res-traits"></div>
+    <hr class="divider">
+    <div class="section-title">궁합</div>
+    <div id="res-compat" style="margin-bottom:1.5rem"></div>
+    <button class="start-btn" onclick="restart()">결과 공유 / 다시 검사</button>
+    <button class="restart-btn" onclick="restart()">처음으로</button>
+  </div>
+
+</div>
+<script>
+const QUESTIONS=[
+  {dim:'EI',cat:'에너지 방향',text:'파티나 모임에 가면 에너지가 충전되는 느낌이 든다.',a:'그렇다',b:'아니다',aDir:'E'},
+  {dim:'EI',cat:'에너지 방향',text:'혼자 있는 시간이 없으면 피로가 쌓인다.',a:'그렇다',b:'아니다',aDir:'I'},
+  {dim:'EI',cat:'에너지 방향',text:'모르는 사람과도 쉽게 대화를 시작한다.',a:'그렇다',b:'아니다',aDir:'E'},
+  {dim:'EI',cat:'에너지 방향',text:'생각은 먼저 혼자 정리한 뒤에 말하는 편이다.',a:'그렇다',b:'아니다',aDir:'I'},
+  {dim:'EI',cat:'에너지 방향',text:'조용한 곳보다 활기찬 환경이 더 편하다.',a:'그렇다',b:'아니다',aDir:'E'},
+  {dim:'EI',cat:'에너지 방향',text:'친한 사람 몇 명과의 깊은 관계를 선호한다.',a:'그렇다',b:'아니다',aDir:'I'},
+  {dim:'EI',cat:'에너지 방향',text:'여러 활동을 동시에 하는 것이 즐겁다.',a:'그렇다',b:'아니다',aDir:'E'},
+  {dim:'EI',cat:'에너지 방향',text:'집중이 필요할 때는 혼자 있어야 잘된다.',a:'그렇다',b:'아니다',aDir:'I'},
+  {dim:'EI',cat:'에너지 방향',text:'나는 행동보다 관찰을 먼저 하는 편이다.',a:'그렇다',b:'아니다',aDir:'I'},
+  {dim:'EI',cat:'에너지 방향',text:'주목받는 것이 불편하지 않다.',a:'그렇다',b:'아니다',aDir:'E'},
+  {dim:'EI',cat:'에너지 방향',text:'대화하면서 생각이 정리되는 편이다.',a:'그렇다',b:'아니다',aDir:'E'},
+  {dim:'EI',cat:'에너지 방향',text:'사람들이 많은 곳은 금방 지친다.',a:'그렇다',b:'아니다',aDir:'I'},
+  {dim:'EI',cat:'에너지 방향',text:'새 친구를 사귀는 것이 즐겁다.',a:'그렇다',b:'아니다',aDir:'E'},
+  {dim:'EI',cat:'에너지 방향',text:'깊이 생각하는 시간이 나에게 소중하다.',a:'그렇다',b:'아니다',aDir:'I'},
+  {dim:'EI',cat:'에너지 방향',text:'먼저 연락을 하는 편이다.',a:'그렇다',b:'아니다',aDir:'E'},
+  {dim:'SN',cat:'정보 수집',text:'지금 눈앞에 있는 사실이 미래 가능성보다 더 중요하다.',a:'그렇다',b:'아니다',aDir:'S'},
+  {dim:'SN',cat:'정보 수집',text:'아이디어를 떠올릴 때 흥분되는 느낌이 좋다.',a:'그렇다',b:'아니다',aDir:'N'},
+  {dim:'SN',cat:'정보 수집',text:'구체적이고 검증된 방법을 선호한다.',a:'그렇다',b:'아니다',aDir:'S'},
+  {dim:'SN',cat:'정보 수집',text:'비유나 은유로 대화하는 것이 자연스럽다.',a:'그렇다',b:'아니다',aDir:'N'},
+  {dim:'SN',cat:'정보 수집',text:'경험에서 배운 것이 이론보다 믿을 만하다.',a:'그렇다',b:'아니다',aDir:'S'},
+  {dim:'SN',cat:'정보 수집',text:'아직 없는 것, 될 수 있는 것에 관심이 많다.',a:'그렇다',b:'아니다',aDir:'N'},
+  {dim:'SN',cat:'정보 수집',text:'단계적이고 순차적인 설명이 편하다.',a:'그렇다',b:'아니다',aDir:'S'},
+  {dim:'SN',cat:'정보 수집',text:'복잡한 패턴을 빨리 파악하는 편이다.',a:'그렇다',b:'아니다',aDir:'N'},
+  {dim:'SN',cat:'정보 수집',text:'실용적이지 않은 아이디어는 별로 흥미롭지 않다.',a:'그렇다',b:'아니다',aDir:'S'},
+  {dim:'SN',cat:'정보 수집',text:'상상하는 것 자체가 즐겁다.',a:'그렇다',b:'아니다',aDir:'N'},
+  {dim:'SN',cat:'정보 수집',text:'세부 사항에 주의를 기울이는 편이다.',a:'그렇다',b:'아니다',aDir:'S'},
+  {dim:'SN',cat:'정보 수집',text:'큰 그림이 먼저 그려져야 세부 사항이 이해된다.',a:'그렇다',b:'아니다',aDir:'N'},
+  {dim:'SN',cat:'정보 수집',text:'반복적인 작업도 잘 해낸다.',a:'그렇다',b:'아니다',aDir:'S'},
+  {dim:'SN',cat:'정보 수집',text:'새로운 방식을 시도하는 것이 더 재미있다.',a:'그렇다',b:'아니다',aDir:'N'},
+  {dim:'SN',cat:'정보 수집',text:'이미 검증된 방법이 더 안전하다고 느낀다.',a:'그렇다',b:'아니다',aDir:'S'},
+  {dim:'TF',cat:'판단 기준',text:'논리적으로 옳다면 감정은 나중에 고려해도 된다.',a:'그렇다',b:'아니다',aDir:'T'},
+  {dim:'TF',cat:'판단 기준',text:'누군가 상처받을 것 같으면 진실을 그대로 말하기 어렵다.',a:'그렇다',b:'아니다',aDir:'F'},
+  {dim:'TF',cat:'판단 기준',text:'칭찬보다 정확한 피드백이 더 가치 있다.',a:'그렇다',b:'아니다',aDir:'T'},
+  {dim:'TF',cat:'판단 기준',text:'분위기가 어색해지는 것이 불편하다.',a:'그렇다',b:'아니다',aDir:'F'},
+  {dim:'TF',cat:'판단 기준',text:'논쟁에서 감정적이 되는 것은 비효율적이다.',a:'그렇다',b:'아니다',aDir:'T'},
+  {dim:'TF',cat:'판단 기준',text:'사람들 사이의 갈등을 해소하는 데 에너지를 쓴다.',a:'그렇다',b:'아니다',aDir:'F'},
+  {dim:'TF',cat:'판단 기준',text:'공정함이 배려보다 우선이다.',a:'그렇다',b:'아니다',aDir:'T'},
+  {dim:'TF',cat:'판단 기준',text:'나는 타인의 감정 상태를 잘 알아챈다.',a:'그렇다',b:'아니다',aDir:'F'},
+  {dim:'TF',cat:'판단 기준',text:'어렵더라도 솔직하게 말하는 것이 맞다.',a:'그렇다',b:'아니다',aDir:'T'},
+  {dim:'TF',cat:'판단 기준',text:'결정을 내릴 때 관련된 사람들의 감정을 먼저 생각한다.',a:'그렇다',b:'아니다',aDir:'F'},
+  {dim:'TF',cat:'판단 기준',text:'원인을 분석하는 것이 위로보다 더 도움이 된다고 본다.',a:'그렇다',b:'아니다',aDir:'T'},
+  {dim:'TF',cat:'판단 기준',text:'좋은 관계가 성과보다 중요할 때가 있다.',a:'그렇다',b:'아니다',aDir:'F'},
+  {dim:'TF',cat:'판단 기준',text:'감정에 흔들리지 않는 것이 성숙한 태도다.',a:'그렇다',b:'아니다',aDir:'T'},
+  {dim:'TF',cat:'판단 기준',text:'나는 공감을 받을 때 힘이 난다.',a:'그렇다',b:'아니다',aDir:'F'},
+  {dim:'TF',cat:'판단 기준',text:'규칙은 예외 없이 적용되어야 한다.',a:'그렇다',b:'아니다',aDir:'T'},
+  {dim:'JP',cat:'생활 방식',text:'계획이 있어야 마음이 편하다.',a:'그렇다',b:'아니다',aDir:'J'},
+  {dim:'JP',cat:'생활 방식',text:'상황에 따라 즉흥적으로 바꾸는 것이 더 재미있다.',a:'그렇다',b:'아니다',aDir:'P'},
+  {dim:'JP',cat:'생활 방식',text:'마감이 없으면 집중이 잘 안 된다.',a:'그렇다',b:'아니다',aDir:'J'},
+  {dim:'JP',cat:'생활 방식',text:'결정을 미루면서 더 많은 선택지를 열어두고 싶다.',a:'그렇다',b:'아니다',aDir:'P'},
+  {dim:'JP',cat:'생활 방식',text:'일을 미리 끝내야 편하다.',a:'그렇다',b:'아니다',aDir:'J'},
+  {dim:'JP',cat:'생활 방식',text:'계획이 바뀌어도 크게 개의치 않는다.',a:'그렇다',b:'아니다',aDir:'P'},
+  {dim:'JP',cat:'생활 방식',text:'정해진 루틴이 있는 것이 좋다.',a:'그렇다',b:'아니다',aDir:'J'},
+  {dim:'JP',cat:'생활 방식',text:'마감 직전에 일이 더 잘된다.',a:'그렇다',b:'아니다',aDir:'P'},
+  {dim:'JP',cat:'생활 방식',text:'깔끔하게 정돈된 공간에서 일하는 것을 선호한다.',a:'그렇다',b:'아니다',aDir:'J'},
+  {dim:'JP',cat:'생활 방식',text:'여러 일을 동시에 벌여놓는 편이다.',a:'그렇다',b:'아니다',aDir:'P'},
+  {dim:'JP',cat:'생활 방식',text:'약속은 어기지 않으려고 노력한다.',a:'그렇다',b:'아니다',aDir:'J'},
+  {dim:'JP',cat:'생활 방식',text:'규칙보다 흐름에 따르는 것이 편하다.',a:'그렇다',b:'아니다',aDir:'P'},
+  {dim:'JP',cat:'생활 방식',text:'결정이 나면 빨리 실행하고 싶다.',a:'그렇다',b:'아니다',aDir:'J'},
+  {dim:'JP',cat:'생활 방식',text:'아직 결정하지 않은 상태가 자유롭다고 느낀다.',a:'그렇다',b:'아니다',aDir:'P'},
+  {dim:'JP',cat:'생활 방식',text:'할 일 목록을 만들어두면 안심이 된다.',a:'그렇다',b:'아니다',aDir:'J'},
+];
+
+const TYPES={
+  INTJ:{name:'전략가',emoji:'🔭',desc:'독립적이고 결단력 있는 사상가. 복잡한 시스템을 꿰뚫어 보는 능력이 있으며 장기적 목표를 향해 전략적으로 움직인다. 감정보다 논리를 앞세우며 비효율을 참지 못한다.',traits:[['분석력','체스판 전체를 읽는 눈'],['의지력','목표 앞에서 흔들리지 않음'],['독립성','타인의 시선에 흔들리지 않음'],['완벽주의','높은 기준이 양날의 검']],best:['ENFP','ENTP'],good:['INFJ','INFP','ENTJ'],compat:{'ENFP':'상상력과 전략이 만나는 조합. 서로의 세계를 넓혀준다.','ENTP':'지적 긴장감이 넘치는 관계. 토론이 전쟁이 아닌 놀이다.','INFJ':'깊이에서 통하는 조용한 연대.','INFP':'이상과 전략, 서로에게 없는 것을 채운다.','ENTJ':'두 전략가의 강력한 연대.'}},
+  INTP:{name:'논리술사',emoji:'🔬',desc:'지식에 굶주린 탐구자. 세상을 이루는 원리를 이해하고 싶어하며, 확실하지 않은 것에 성급한 결론 내리기를 거부한다. 겉으로는 조용하지만 머릿속은 끊임없이 돌아간다.',traits:[['논리','모순을 찾아내는 레이더'],['창의','기존 틀 밖에서 생각하기'],['집중','관심 분야엔 무서운 몰입'],['우유부단','완벽한 답을 찾다 결론이 늦음']],best:['ENTJ','ESTJ'],good:['INTJ','ENTP','INFJ'],compat:{'ENTJ':'INTP의 아이디어를 실행으로 이끄는 파트너.','ESTJ':'현실과 이론의 균형을 맞춰주는 관계.','ENTP':'아이디어 폭발. 끝이 없는 대화.','INTJ':'깊이에서 통하는 지적 연대.','INFJ':'논리와 통찰이 만나는 드문 관계.'}},
+  ENTJ:{name:'통솔자',emoji:'👑',desc:'타고난 지휘관. 목표를 설정하고 사람을 조직해 실현하는 능력이 탁월하다. 비효율과 무능을 참지 못하며 늘 더 나은 방법을 찾는다. 때로는 직설적인 말이 상처가 된다.',traits:[['리더십','방향을 제시하는 능력'],['결단력','망설임 없는 실행'],['전략','목표를 향한 설계도'],['강압성','의견이 명령이 되기도 함']],best:['INTP','INFP'],good:['INTJ','ENTP','ESTJ'],compat:{'INTP':'아이디어와 실행의 최강 콤비.','INFP':'가치와 전략이 만나는 깊은 관계.','INTJ':'두 전략가의 강력한 연대.','ENTP':'창의와 실행의 폭발적 조합.','ESTJ':'체계와 추진력이 배가된다.'}},
+  ENTP:{name:'변론가',emoji:'⚡',desc:'아이디어의 용광로. 모든 것에 의문을 제기하고 토론을 즐긴다. 창의적이고 임기응변에 강하며 지루함을 견디지 못한다. 시작은 많지만 끝내는 것이 어렵다.',traits:[['독창성','아무도 가지 않은 길'],['순발력','막힌 상황을 뚫는 유연함'],['설득력','말로 세상을 바꾸는 능력'],['변덕','관심이 빠르게 이동함']],best:['INFJ','INTJ'],good:['ENFP','INTP','ENTJ'],compat:{'INFJ':'깊이와 넓이가 만나는 특별한 조합.','INTJ':'전략과 창의가 충돌하고 시너지를 낸다.','ENFP':'에너지 과부하지만 즐겁다.','INTP':'아이디어 폭발. 끝이 없는 대화.','ENTJ':'창의와 실행의 폭발적 조합.'}},
+  INFJ:{name:'옹호자',emoji:'🌿',desc:'드문 유형. 이상주의적이면서도 현실적인 실천력을 갖췄다. 타인의 감정을 깊이 이해하며 진정한 변화를 만들고 싶어한다. 혼자만의 시간 없이는 소진된다.',traits:[['통찰','말 뒤에 숨은 것을 읽음'],['헌신','믿는 것을 위해 끝까지 감'],['공감','타인의 고통이 자신의 것처럼 느껴짐'],['완벽주의','자신에게 지나치게 엄격함']],best:['ENTP','ENFP'],good:['INTJ','INFP','INFJ'],compat:{'ENTP':'INFJ의 깊이에 ENTP의 불꽃이 튄다.','ENFP':'따뜻하고 창의적인 최고의 파트너.','INTJ':'서로의 내면 세계를 이해하는 조용한 연대.','INFP':'같은 깊이에서 통하는 영혼의 연결.','INFJ':'서로를 완전히 이해하는 드문 관계.'}},
+  INFP:{name:'중재자',emoji:'🌙',desc:'깊은 이상과 감수성의 소유자. 세상을 더 나은 곳으로 만들고 싶어하며 진정성 있는 삶을 추구한다. 겉으로는 조용하지만 내면에 강렬한 열정이 있다.',traits:[['감수성','세상의 아름다움과 아픔을 예민하게 포착'],['창의','독창적인 시각과 표현'],['공감','타인의 입장에서 생각하는 능력'],['현실 회피','갈등을 마주하기 어려워함']],best:['ENFJ','ENTJ'],good:['INFJ','ENFP','INTJ'],compat:{'ENFJ':'INFP의 세계를 이해하고 이끌어주는 파트너.','ENTJ':'대립하지만 서로가 필요한 관계.','INFJ':'같은 깊이에서 통하는 영혼의 연결.','ENFP':'따뜻하고 자유로운 두 영혼의 만남.','INTJ':'이상과 전략, 서로에게 없는 것을 채운다.'}},
+  ENFJ:{name:'주인공',emoji:'🌟',desc:'타고난 카리스마와 따뜻함으로 사람을 이끄는 유형. 타인의 잠재력을 보고 성장을 돕는 데 보람을 느낀다. 자신을 희생하면서까지 타인을 돕는 경향이 있다.',traits:[['카리스마','자연스럽게 중심이 되는 존재감'],['공감','타인의 필요를 먼저 알아챔'],['헌신','믿는 사람을 위해 전력을 다함'],['자기희생','자신의 필요를 마지막에 두는 경향']],best:['INFP','ISFP'],good:['ENFP','INFJ','ENTP'],compat:{'INFP':'ENFJ의 따뜻함이 INFP의 세계를 꽃피운다.','ISFP':'말보다 행동으로 이해하는 관계.','INFJ':'두 이상주의자의 깊은 연대.','ENFP':'에너지와 따뜻함이 폭발하는 조합.','ENTP':'이상과 창의가 만나는 활기찬 관계.'}},
+  ENFP:{name:'활동가',emoji:'🎨',desc:'에너지 넘치는 자유로운 영혼. 새로운 가능성과 사람에게 진심으로 흥미를 느낀다. 창의적이고 열정적이지만 루틴과 마감이 약점이다.',traits:[['열정','모든 것에 진심으로 뛰어드는 에너지'],['창의','틀을 벗어난 사고'],['공감','사람을 진심으로 이해하는 능력'],['산만','집중 유지가 어렵고 마감이 힘듦']],best:['INTJ','INFJ'],good:['ENTP','ENFJ','INFP'],compat:{'INTJ':'정반대지만 서로에게 없는 것을 채워준다.','INFJ':'이상과 현실의 균형을 찾는 관계.','ENTP':'에너지와 창의의 폭발적인 조합.','ENFJ':'에너지와 따뜻함이 폭발하는 조합.','INFP':'따뜻하고 자유로운 두 영혼의 만남.'}},
+  ISTJ:{name:'현실주의자',emoji:'📋',desc:'신뢰와 책임감의 상징. 맡은 일은 반드시 완수하고 전통과 규칙을 중시한다. 감정보다 사실에 근거해 판단하며 변화보다 안정을 선호한다.',traits:[['책임감','약속은 반드시 지킨다'],['꼼꼼함','세부 사항을 놓치지 않는다'],['안정성','흔들리지 않는 든든한 존재'],['경직성','변화에 느리게 반응함']],best:['ESFP','ESTP'],good:['ISFJ','ESTJ','ISFP'],compat:{'ESFP':'ISTJ의 안정에 ESFP의 활력을 불어넣는다.','ESTP':'현실적인 두 사람의 실용적 파트너십.','ISFJ':'조용하지만 단단한 연대.','ESTJ':'체계와 책임감이 배가된다.','ISFP':'안정과 유연함의 균형.'}},
+  ISFJ:{name:'수호자',emoji:'🛡️',desc:'조용히 세상을 지키는 사람. 타인의 필요를 기억하고 세심하게 돌본다. 변화보다 안정을 선호하며 감사받지 못해도 묵묵히 헌신한다.',traits:[['세심함','작은 것도 기억하고 챙김'],['헌신','사람을 위해 조용히 움직임'],['안정감','주변에 든든한 존재'],['자기표현 부족','자신의 필요를 말하지 못함']],best:['ESFP','ESTP'],good:['ISTJ','ISFP','ESFJ'],compat:{'ESFP':'ISFJ의 조용한 헌신에 활력을 더함.','ESTP':'현실적인 파트너로 잘 맞음.','ISFP':'조용히 서로를 이해하는 관계.','ISTJ':'조용하지만 단단한 연대.','ESFJ':'따뜻함이 통하는 자연스러운 연대.'}},
+  ESTJ:{name:'경영자',emoji:'⚙️',desc:'조직과 효율의 마스터. 명확한 기준과 구조를 세우고 그것이 작동하도록 만드는 데 탁월하다. 리더십이 강하지만 때로는 너무 직선적이다.',traits:[['조직력','체계를 만들고 유지하는 능력'],['결단력','빠른 판단과 실행'],['리더십','책임을 기꺼이 짊어짐'],['고집','자신의 방식을 강요하는 경향']],best:['ISFP','ISTP'],good:['ISTJ','INTP','ENTJ'],compat:{'ISFP':'ESTJ의 구조에 ISFP의 유연함을 더함.','ISTP':'말보다 행동으로 통하는 실용적 파트너십.','INTP':'이론과 실행의 강력한 조합.','ISTJ':'체계와 책임감이 배가된다.','ENTJ':'체계와 추진력이 배가된다.'}},
+  ESFJ:{name:'집정관',emoji:'🤝',desc:'사람을 하나로 모으는 사람. 타인의 감정에 민감하고 조화를 중시한다. 승인과 인정을 필요로 하며 비판에 취약하다.',traits:[['배려','타인의 필요를 먼저 생각함'],['협력','갈등 없는 환경을 만드는 능력'],['충성','가까운 사람을 위해 전력을 다함'],['눈치','타인의 평가에 지나치게 민감함']],best:['ISFP','ISTP'],good:['ISFJ','ENFJ','INFP'],compat:{'ISFP':'ESFJ의 배려가 ISFP의 자유를 지켜준다.','ISTP':'말보다 행동으로 이해하는 파트너.','ISFJ':'따뜻함이 통하는 자연스러운 연대.','ENFJ':'에너지와 따뜻함이 폭발하는 조합.','INFP':'배려와 감수성이 만나는 깊은 관계.'}},
+  ISTP:{name:'장인',emoji:'🔧',desc:'조용하고 실용적인 문제 해결사. 이론보다 직접 해보는 것을 선호하며 위기 상황에서 냉정하게 빛난다. 감정 표현이 적고 독립성이 강하다.',traits:[['문제 해결','즉각적이고 실용적인 해결'],['독립성','혼자 해내는 힘'],['냉정함','감정에 흔들리지 않는 판단'],['거리감','친밀감 표현이 어려움']],best:['ESFJ','ESTJ'],good:['ISTJ','ESTP','ISFP'],compat:{'ESFJ':'ISTP의 거리를 ESFJ의 따뜻함이 채움.','ESTJ':'실용적인 두 사람의 효율적 파트너십.','ESTP':'행동하는 두 사람의 빠른 시너지.','ISTJ':'말없이 통하는 실용적 관계.','ISFP':'조용히 서로를 이해하는 관계.'}},
+  ISFP:{name:'모험가',emoji:'🎭',desc:'조용한 예술가. 겉으로는 수줍어 보이지만 내면에 강렬한 감수성과 자신만의 가치관이 있다. 규칙보다 자유를 선호하며 현재의 순간에 충실하다.',traits:[['감수성','세상의 아름다움을 느끼는 안테나'],['유연성','흐름에 자연스럽게 몸을 맡김'],['진정성','꾸미지 않는 솔직함'],['회피','갈등을 피하다 문제가 커지기도 함']],best:['ENFJ','ESFJ'],good:['INFP','ISFJ','ESTP'],compat:{'ENFJ':'ISFP의 내면 세계를 가장 잘 이해하는 파트너.','ESFJ':'따뜻하고 안정적인 관계.','ESTP':'즉흥과 현실감각이 통하는 조합.','INFP':'감수성이 통하는 조용한 연결.','ISFJ':'조용히 서로를 이해하는 관계.'}},
+  ESTP:{name:'사업가',emoji:'🎯',desc:'현실 감각이 뛰어난 실행가. 위험을 즐기고 즉흥적인 상황에서 강하다. 이론보다 직접 경험을 통해 배우며 에너지가 넘친다.',traits:[['실행력','생각보다 행동이 먼저'],['대담함','위험도 기회로 보는 시각'],['현실감각','지금 이 순간을 읽는 능력'],['충동성','장기적 결과를 간과하기도 함']],best:['ISFJ','ISTJ'],good:['ISTP','ESFP','ISFP'],compat:{'ISFJ':'ESTP의 에너지를 안정적으로 잡아주는 파트너.','ISTJ':'실용적인 두 사람의 강력한 연대.','ESFP':'에너지가 폭발하는 신나는 조합.','ISTP':'행동하는 두 사람의 빠른 시너지.','ISFP':'즉흥과 현실감각이 통하는 조합.'}},
+  ESFP:{name:'연예인',emoji:'🎉',desc:'삶을 파티로 만드는 사람. 사람과 현재의 순간을 즐기며 타인에게 기쁨을 준다. 즉흥적이고 열정적이지만 장기 계획이 약하다.',traits:[['활기','어디서든 분위기를 만드는 에너지'],['공감','사람들과 즉각적으로 연결되는 능력'],['즉흥성','지금 이 순간에 충실함'],['집중 부족','긴 호흡의 작업이 어려움']],best:['ISTJ','ISFJ'],good:['ESTP','ISTP','ISFP'],compat:{'ISTJ':'ESFP의 즉흥성에 ISTJ의 안정이 균형을 잡음.','ISFJ':'서로를 자연스럽게 보완하는 관계.','ESTP':'에너지와 즉흥성의 폭발적 조합.','ISTP':'행동과 감각이 통하는 관계.','ISFP':'자유로운 두 영혼의 자연스러운 만남.'}}
+};
+
+let answers=new Array(60).fill(null);
+let current=0;
+
+function startTest(){showScreen('screen-test');renderQ();}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);}
+
+function renderQ(){
+  const q=QUESTIONS[current];
+  document.getElementById('q-cat').textContent=q.cat;
+  document.getElementById('q-text').textContent=q.text;
+  document.getElementById('prog-label').textContent=(current+1)+' / 60';
+  document.getElementById('prog-fill').style.width=((current+1)/60*100)+'%';
+  document.getElementById('btn-prev').style.visibility=current===0?'hidden':'visible';
+  const nb=document.getElementById('btn-next');
+  nb.textContent=current===59?'결과 보기 →':'다음 →';
+  nb.disabled=answers[current]===null;
+  const opts=document.getElementById('options');
+  opts.innerHTML=`
+    <button class="opt-btn${answers[current]==='a'?' selected':''}" onclick="selectOpt('a')">${q.a}</button>
+    <button class="opt-btn${answers[current]==='b'?' selected':''}" onclick="selectOpt('b')">${q.b}</button>`;
+}
+
+function selectOpt(v){
+  answers[current]=v;
+  document.querySelectorAll('.opt-btn').forEach((b,i)=>{b.classList.toggle('selected',(i===0&&v==='a')||(i===1&&v==='b'));});
+  document.getElementById('btn-next').disabled=false;
+}
+
+function nextQ(){if(answers[current]===null)return;if(current===59){showResult();return;}current++;renderQ();}
+function prevQ(){if(current===0)return;current--;renderQ();}
+
+function getOpposite(d){return{E:'I',I:'E',S:'N',N:'S',T:'F',F:'T',J:'P',P:'J'}[d];}
+
+function calcType(){
+  const scores={E:0,I:0,S:0,N:0,T:0,F:0,J:0,P:0};
+  QUESTIONS.forEach((q,i)=>{
+    if(answers[i]===null)return;
+    const dir=answers[i]==='a'?q.aDir:getOpposite(q.aDir);
+    scores[dir]++;
+  });
+  const type=(scores.E>=scores.I?'E':'I')+(scores.S>=scores.N?'S':'N')+(scores.T>=scores.F?'T':'F')+(scores.J>=scores.P?'J':'P');
+  return{type,scores};
+}
+
+function showResult(){
+  const{type,scores}=calcType();
+  const info=TYPES[type]||TYPES['INFP'];
+  showScreen('screen-result');
+  document.getElementById('res-emoji').textContent=info.emoji;
+  document.getElementById('res-code').textContent=type;
+  document.getElementById('res-name').textContent=info.name;
+
+  const dims=[
+    {l:'E',r:'I',ls:'외향',rs:'내향'},
+    {l:'S',r:'N',ls:'감각',rs:'직관'},
+    {l:'T',r:'F',ls:'사고',rs:'감정'},
+    {l:'J',r:'P',ls:'판단',rs:'인식'},
+  ];
+  document.getElementById('trait-bars').innerHTML=dims.map(d=>{
+    const lv=scores[d.l]||0,rv=scores[d.r]||0,tot=lv+rv||1;
+    const lpct=Math.round(lv/tot*100);
+    const dominant=lv>=rv?d.ls:d.rs;
+    const pct=lv>=rv?lpct:100-lpct;
+    return`<div class="trait-row">
+      <div class="trait-labels"><span>${d.ls} (${d.l})</span><span>${d.rs} (${d.r})</span></div>
+      <div class="trait-bar-bg"><div class="trait-bar-fill" style="width:${lpct}%"></div></div>
+      <div class="trait-pct">${dominant} 성향 ${pct}%</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('res-desc').innerHTML=`<p>${info.desc}</p>`;
+  document.getElementById('res-traits').innerHTML=info.traits.map(t=>`<div class="trait-chip"><div class="trait-chip-title">${t[0]}</div><div class="trait-chip-desc">${t[1]}</div></div>`).join('');
+
+  const allCompat=[...info.best.map(t=>({t,label:'최고 궁합',pct:93})),...info.good.map(t=>({t,label:'좋은 궁합',pct:74}))];
+  document.getElementById('res-compat').innerHTML=allCompat.map(({t,label,pct})=>{
+    const ti=TYPES[t];if(!ti)return'';
+    const desc=info.compat&&info.compat[t]?info.compat[t]:label;
+    return`<div class="compat-item">
+      <div class="compat-type-code">${t}</div>
+      <div class="compat-info"><div class="compat-name">${ti.name} · ${label}</div><div class="compat-desc">${desc}</div></div>
+      <div class="compat-bar-wrap"><div class="compat-bar"><div class="compat-fill" style="width:${pct}%"></div></div><div class="compat-pct-label">${pct}%</div></div>
+    </div>`;
+  }).join('');
+}
+
+function restart(){answers=new Array(60).fill(null);current=0;showScreen('screen-start');}
+</script>
+</body>
+</html>
